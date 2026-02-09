@@ -1,0 +1,19 @@
+{
+  "name": "warehouse-robot-demo",
+  "version": "1.0.0",
+  "description": "Warehouse Robot Simulation for Hackathon",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'No build required for static site'",
+    "preview": "npx http-server ."
+  },
+  "keywords": [
+    "warehouse",
+    "robot",
+    "simulation",
+    "ai",
+    "automation"
+  ],
+  "author": "Your Team",
+  "license": "MIT"
+}
