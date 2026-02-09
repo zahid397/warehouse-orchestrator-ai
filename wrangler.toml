@@ -1,0 +1,11 @@
+name = "warehouse-orchestrator-ai"
+main = "src/index.js"
+compatibility_date = "2023-12-01"
+
+[site]
+bucket = "./dist"
+entry-point = "."
+
+[[routes]]
+pattern = "/*"
+zone_id = "your-zone-id"
