@@ -263,4 +263,388 @@ const TaskManager = () => {
 
       {/* Filters and Search */}
       <div className="stat-card">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex-1">
+            <div className="relative">
+              <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search tasks..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 pr-4 py-2.5 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              {statuses.map(status => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
+            </select>
+            <select
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="all">All Priorities</option>
+              {priorities.map(priority => (
+                <option key={priority.value} value={priority.value}>{priority.label}</option>
+              ))}
+            </select>
+            <select
+              value={robotFilter}
+              onChange={(e) => setRobotFilter(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="all">All Robots</option>
+              {robots.map(robot => (
+                <option key={robot} value={robot}>{robot}</option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-2.5 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            >
+              <option value="created">Sort by Created</option>
+              <option value="priority">Sort by Priority</option>
+              <option value="progress">Sort by Progress</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Tasks List */}
+        <div className="space-y-4">
+          {filteredTasks.map((task) => (
+            <div key={task.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-bold text-gray-900">{task.title}</h3>
+                      <p className="text-sm text-gray-600">{task.description}</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className={`px-2 py-1 rounded text-xs font-medium bg-${getPriorityColor(task.priority)}-100 text-${getPriorityColor(task.priority)}-800`}>
+                        {task.priority.toUpperCase()}
+                      </span>
+                      <span className={`px-2 py-1 rounded text-xs font-medium bg-${getStatusColor(task.status)}-100 text-${getStatusColor(task.status)}-800`}>
+                        {task.status.toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FaRobot className="text-gray-400" />
+                      <span className="text-gray-700">Robot: <strong>{task.assignedTo}</strong></span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FaMapMarkerAlt className="text-gray-400" />
+                      <span className="text-gray-700">Location: <strong>{task.location}</strong></span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FaBox className="text-gray-400" />
+                      <span className="text-gray-700">Items: <strong>{task.items}</strong></span>
+                    </div>
+                    <div className="flex items-center space-x-2 text-sm">
+                      <FaClock className="text-gray-400" />
+                      <span className="text-gray-700">Duration: <strong>{task.estimatedDuration}m</strong></span>
+                    </div>
+                  </div>
+
+                  <TaskProgress 
+                    progress={task.progress} 
+                    status={task.status}
+                    estimatedDuration={task.estimatedDuration}
+                    started={task.started}
+                  />
+                </div>
+
+                <div className="flex flex-col space-y-2 min-w-[200px]">
+                  <div className="text-sm text-gray-600">
+                    Created: {formatDistanceToNow(new Date(task.created), { addSuffix: true })}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {task.status === 'pending' && (
+                      <button
+                        onClick={() => handleTaskAction(task.id, 'start')}
+                        className="flex-1 btn-primary py-1.5 text-sm"
+                      >
+                        <FaPlay className="inline mr-1" /> Start
+                      </button>
+                    )}
+                    {task.status === 'in-progress' && (
+                      <>
+                        <button
+                          onClick={() => handleTaskAction(task.id, 'pause')}
+                          className="flex-1 btn-secondary py-1.5 text-sm"
+                        >
+                          <FaPause className="inline mr-1" /> Pause
+                        </button>
+                        <button
+                          onClick={() => handleTaskAction(task.id, 'complete')}
+                          className="flex-1 btn-success py-1.5 text-sm"
+                        >
+                          <FaCheckCircle className="inline mr-1" /> Complete
+                        </button>
+                      </>
+                    )}
+                    {(task.status === 'pending' || task.status === 'in-progress') && (
+                      <button
+                        onClick={() => handleTaskAction(task.id, 'cancel')}
+                        className="flex-1 btn-danger py-1.5 text-sm"
+                      >
+                        <FaStop className="inline mr-1" /> Cancel
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-end space-x-2">
+                    <button
+                      onClick={() => handleEditTask(task)}
+                      className="p-1.5 text-primary-600 hover:text-primary-800"
+                      title="Edit"
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteTask(task.id)}
+                      className="p-1.5 text-red-600 hover:text-red-800"
+                      title="Delete"
+                    >
+                      <FaTrash />
+                    </button>
+                    <button
+                      className="p-1.5 text-gray-600 hover:text-gray-800"
+                      title="View Details"
+                    >
+                      <FaEye />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {filteredTasks.length === 0 && (
+            <div className="text-center py-12">
+              <FaBox className="mx-auto text-gray-400 text-4xl mb-3" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No tasks found</h3>
+              <p className="text-gray-600">Try adjusting your search or filters</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Task Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="stat-card">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Task Status Distribution</h2>
+          <div className="space-y-4">
+            {statuses.map((status) => {
+              const count = tasks.filter(t => t.status === status.value).length
+              const percentage = tasks.length > 0 ? (count / tasks.length * 100).toFixed(1) : 0
+              
+              return (
+                <div key={status.value} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className={`p-1.5 rounded bg-${status.color}-100`}>
+                        {status.icon}
+                      </div>
+                      <span className="font-medium text-gray-900">{status.label}</span>
+                    </div>
+                    <span className="font-bold text-gray-900">{count} ({percentage}%)</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full bg-${status.color}-500 rounded-full`}
+                      style={{ width: `${percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Task Types</h2>
+          <div className="space-y-3">
+            {taskTypes.map((type) => {
+              const count = tasks.filter(t => t.type === type).length
+              if (count === 0) return null
+              
+              return (
+                <div key={type} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <span className="font-medium text-gray-900">{type}</span>
+                  <span className="px-2 py-1 bg-primary-100 text-primary-800 rounded text-sm font-medium">
+                    {count} tasks
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Robot Workload</h2>
+          <div className="space-y-4">
+            {robots.map((robot) => {
+              const robotTasks = tasks.filter(t => t.assignedTo === robot)
+              const activeTasks = robotTasks.filter(t => t.status === 'in-progress').length
+              const totalTasks = robotTasks.length
+              
+              return (
+                <div key={robot} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <FaRobot className="text-gray-400" />
+                      <span className="font-medium text-gray-900">{robot}</span>
+                    </div>
+                    <span className="font-bold text-gray-900">{activeTasks}/{totalTasks} active</span>
+                  </div>
+                  <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-blue-500 rounded-full"
+                      style={{ width: `${(activeTasks / Math.max(totalTasks, 1)) * 100}%` }}
+                    ></div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Create/Edit Task Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={selectedTask ? 'Edit Task' : 'Create New Task'}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Task Title
+            </label>
+            <input
+              type="text"
+              defaultValue={selectedTask?.title || ''}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Description
+            </label>
+            <textarea
+              defaultValue={selectedTask?.description || ''}
+              rows={3}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Task Type
+              </label>
+              <select
+                defaultValue={selectedTask?.type || ''}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="">Select type</option>
+                {taskTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Priority
+              </label>
+              <select
+                defaultValue={selectedTask?.priority || 'medium'}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                {priorities.map(priority => (
+                  <option key={priority.value} value={priority.value}>{priority.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Assign to Robot
+              </label>
+              <select
+                defaultValue={selectedTask?.assignedTo || ''}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              >
+                <option value="">Select robot</option>
+                {robots.map(robot => (
+                  <option key={robot} value={robot}>{robot}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Location
+              </label>
+              <input
+                type="text"
+                defaultValue={selectedTask?.location || ''}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Estimated Duration (minutes)
+              </label>
+              <input
+                type="number"
+                defaultValue={selectedTask?.estimatedDuration || 30}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Number of Items
+              </label>
+              <input
+                type="number"
+                defaultValue={selectedTask?.items || 10}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
+            >
+              {selectedTask ? 'Update Task' : 'Create Task'}
+            </button>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  )
+}
+
+export default TaskManager
